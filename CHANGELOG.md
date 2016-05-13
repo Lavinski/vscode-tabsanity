@@ -1,5 +1,8 @@
+## 0.0.9
+- Add `#cursorUp`, `#cursorUpSelect` and `#cursorDown`, `#cursorDownSelect`.
+
 ## 0.0.8
-- Add `#cursorHomeSelect` and `#cursorEndSelect`
+- Add `#cursorHomeSelect` and `#cursorEndSelect`.
 
 ## 0.0.7
 - Reveal active selection as selections change.

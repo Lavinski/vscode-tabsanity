@@ -25,6 +25,67 @@ export class TabSanity {
 		return (tabSize === 'auto') ? 4 : <number> tabSize;
 	}
 
+	// TODO: private savedPositions = new Map<Position, number>();
+
+	public cursorUp() {
+		return this.assignSelections(this.editor.selections.map(sel => {
+			if (sel.start.line === 0) {
+				return sel;
+			}
+			const newPos = this.findTabStopPositionIfWithinLeadingWhitespace(
+				sel.start.with(sel.start.line - 1)
+			);
+			return new Selection(newPos, newPos);
+		}));
+	}
+
+	public cursorUpSelect() {
+		return this.assignSelections(this.editor.selections.map(sel => {
+			if (sel.end.line === 0) {
+				return sel;
+			}
+			const newActivePos = this.findTabStopPositionIfWithinLeadingWhitespace(
+				sel.active.with(sel.active.line - 1)
+			);
+			return new Selection(sel.anchor, newActivePos);
+		}));
+	}
+
+	public cursorDown() {
+		return this.assignSelections(this.editor.selections.map(sel => {
+			if (sel.end.line === this.doc.lineCount) {
+				return sel;
+			}
+			const newPos = this.findTabStopPositionIfWithinLeadingWhitespace(
+				sel.end.with(sel.end.line + 1)
+			);
+			return new Selection(newPos, newPos);
+		}));
+	}
+
+	public cursorDownSelect() {
+		return this.assignSelections(this.editor.selections.map(sel => {
+			if (sel.end.line === this.doc.lineCount) {
+				return sel;
+			}
+			const newActivePos = this.findTabStopPositionIfWithinLeadingWhitespace(
+				sel.active.with(sel.active.line + 1)
+			);
+			return new Selection(sel.anchor, newActivePos);
+		}));
+	}
+
+	private findTabStopPositionIfWithinLeadingWhitespace(pos: Position) {
+		if (this.isWithinLeadingWhitespace(pos)) {
+			const remainder = pos.character % this.tabSize;
+			const offset = (remainder / this.tabSize > .5)
+				? remainder - this.tabSize
+				: remainder;
+			pos = pos.with(pos.line, pos.character - offset);
+		}
+		return pos;
+	}
+
 	public cursorLeft() {
 		return this.assignSelections(this.editor.selections.map(sel => {
 			const start = (sel.isEmpty)
@@ -120,19 +181,19 @@ export class TabSanity {
 	}
 
 	public cursorLeftSelect() {
-		return this.assignSelections(this.editor.selections.map(selection => {
+		return this.assignSelections(this.editor.selections.map(sel => {
 			return new Selection(
-				selection.anchor,
-				this.findNextLeftPosition(selection.active)
+				sel.anchor,
+				this.findNextLeftPosition(sel.active)
 			);
 		}, this));
 	}
 
 	public cursorHomeSelect() {
-		return this.assignSelections(this.editor.selections.map(selection => {
+		return this.assignSelections(this.editor.selections.map(sel => {
 			return new Selection(
-				selection.anchor,
-				this.findFirstNonWhitespace(selection.start.line)
+				sel.anchor,
+				this.findFirstNonWhitespace(sel.start.line)
 			);
 		}, this));
 	}
@@ -205,20 +266,20 @@ export class TabSanity {
 	}
 
 	public cursorRightSelect() {
-		return this.assignSelections(this.editor.selections.map(selection => {
+		return this.assignSelections(this.editor.selections.map(sel => {
 			return new Selection(
-				selection.anchor,
-				this.findNextRightPosition(selection.active)
+				sel.anchor,
+				this.findNextRightPosition(sel.active)
 			);
 		}, this));
 	}
 
 	public cursorEndSelect() {
-		return this.assignSelections(this.editor.selections.map(selection => {
-			const endLine = this.doc.lineAt(selection.end.line);
+		return this.assignSelections(this.editor.selections.map(sel => {
+			const endLine = this.doc.lineAt(sel.end.line);
 			return new Selection(
-				selection.anchor,
-				new Position(selection.end.line, endLine.text.length)
+				sel.anchor,
+				new Position(sel.end.line, endLine.text.length)
 			);
 		}, this));
 	}
